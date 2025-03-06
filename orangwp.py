@@ -7,7 +7,6 @@ from tkinter import filedialog
 import threading
 import re
 
-# Function to download wallpaper
 def download_wallpaper(url, save_dir):
     try:
         os.makedirs(save_dir, exist_ok=True)
@@ -42,74 +41,53 @@ def set_wallpaper(path):
     except Exception as e:
         print(f"Error setting wallpaper: {e}")
         return False
-
-# Function to apply wallpaper (URL or local path)
 def apply_wallpaper(url_or_path):
     save_dir = os.path.join(os.getenv('APPDATA'), "InterJava-Programs", "wallpaperchng")
 
-    if os.path.exists(url_or_path):  # Local file
+    if os.path.exists(url_or_path):
         success = set_wallpaper(url_or_path)
         print("Local wallpaper set:", "Success" if success else "Failed")
-    else:  # URL
+    else:
         downloaded_path = download_wallpaper(url_or_path, save_dir)
         if downloaded_path:
             success = set_wallpaper(downloaded_path)
             print("Downloaded wallpaper set:", "Success" if success else "Failed")
         else:
             print("Failed to download wallpaper")
-
-# Function to validate URL
 def is_valid_url(url):
     pattern = r'^(https?://)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z]{2,})+(\/[^\s]*)?$'
     return re.match(pattern, url) is not None
-
-# Create the GUI
 def create_gui():
     def show_loading_indicator():
         loading_label = ctk.CTkLabel(frame, text="Loading...")
         loading_label.pack(pady=5)
         root.update()
         return loading_label
-
     def hide_loading_indicator(loading_label):
         loading_label.destroy()
         root.update()
-
-    # Initialize window
     ctk.set_appearance_mode("System")
     ctk.set_default_color_theme("blue")
     root = ctk.CTk()
     root.title("OrangWallpapers Changer")
-
-    # Use a relative path for the icon
     icon_path = os.path.join(os.path.dirname(__file__), "orange.ico")
     if os.path.exists(icon_path):
         root.iconbitmap(icon_path)
     else:
         print(f"Icon not found: {icon_path}")
-
     root.geometry("420x350")
-
-    # Main frame
     frame = ctk.CTkFrame(root)
     frame.pack(pady=20, padx=20, fill="both", expand=True)
-
-    # URL Section
     url_frame = ctk.CTkFrame(frame)
     url_frame.pack(pady=10, padx=10, fill="x")
-    
     label = ctk.CTkLabel(url_frame, text="Enter Wallpaper URL:")
     label.pack(pady=5)
-    
     url_entry = ctk.CTkEntry(url_frame, width=300)
     url_entry.pack(pady=5)
-    
     def change_wallpaper_from_url():
         url = url_entry.get().strip()
         if url and is_valid_url(url):
             loading = show_loading_indicator()
-
-            # Run wallpaper change in a separate thread to keep the UI responsive
             def task():
                 apply_wallpaper(url)
                 hide_loading_indicator(loading)
@@ -117,14 +95,11 @@ def create_gui():
             threading.Thread(target=task).start()
         else:
             print("Invalid URL")
-
     change_button = ctk.CTkButton(
         url_frame, text="Change Wallpaper", command=change_wallpaper_from_url,
         fg_color="orange", text_color="white", hover_color="darkorange"
     )
     change_button.pack(pady=5)
-
-    # Local File Section
     file_frame = ctk.CTkFrame(frame)
     file_frame.pack(pady=10, padx=10, fill="x")
     
@@ -135,27 +110,19 @@ def create_gui():
         )
         if file_path:
             loading = show_loading_indicator()
-
-            # Run wallpaper change in a separate thread to keep the UI responsive
             def task():
                 apply_wallpaper(file_path)
                 hide_loading_indicator(loading)
-
             threading.Thread(target=task).start()
-    
     file_select_button = ctk.CTkButton(
         file_frame, text="Select Local Wallpaper", command=select_local_file,
         fg_color="orange", text_color="white", hover_color="darkorange"
     )
     file_select_button.pack(pady=10)
-
-    # Predefined Wallpapers Section
     predefined_frame = ctk.CTkFrame(frame)
     predefined_frame.pack(pady=10, padx=10, fill="x")
-    
     predefined_label = ctk.CTkLabel(predefined_frame, text="Select a Predefined Wallpaper:")
     predefined_label.pack(pady=5)
-
     wallpaper_urls = {
         "Windows Default Wallpaper.": "C:\\Windows\\Web\\Wallpaper\\Windows\\img19.jpg",
         "Orange OS Wallpaper": "https://raw.githubusercontent.com/InterJavas-Projects/OrangWallpapers/main/wallpapers/img0.png",
@@ -178,27 +145,19 @@ def create_gui():
         "Windows SE Wallpaper": "https://raw.githubusercontent.com/InterJavas-Projects/OrangWallpapers/main/wallpapers/img9991.jpg",
         "Windows 10 Beach But Minecrafted": "https://raw.githubusercontent.com/InterJavas-Projects/OrangWallpapers/main/wallpapers/img9992.jpg",
     }
-
     def select_predefined_wallpaper():
         selection = wallpaper_optionmenu.get()
         if selection and selection in wallpaper_urls:
             url = wallpaper_urls[selection]
             loading = show_loading_indicator()
-
-            # Run wallpaper change in a separate thread to keep the UI responsive
             def task():
                 apply_wallpaper(url)
                 hide_loading_indicator(loading)
-
             threading.Thread(target=task).start()
-    
     wallpaper_optionmenu = ctk.CTkOptionMenu(
         predefined_frame, values=list(wallpaper_urls.keys()), command=lambda _: select_predefined_wallpaper(),
         fg_color="orange", text_color="white", button_color="orange", button_hover_color="darkorange"
     )
     wallpaper_optionmenu.pack(pady=10)
-
     root.mainloop()
-
-# Run the GUI
 create_gui()
